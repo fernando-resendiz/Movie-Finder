@@ -1,6 +1,5 @@
 <script>
 	import Input from './Input.svelte';
-	const commonProps = {maxCounter: 5};
 </script>
 <style>
 	main {
