@@ -2,19 +2,20 @@
     import Movie from './Movie.svelte';
     let value = '';
     let response = [];
-    const APIKEY = '1bfa5520';
-    let loading = false;
+    const API_KEY = '1bfa5520';
 
     const handleInput = (event) => value = event.target.value;
     $:if(value.length > 2){
-        loading = true;
-        fetch(`https://www.omdbapi.com/?s=${value}&apikey=${APIKEY}`)
-            .then(res => res.json())
-            .then(apiResponse => {
-                response = apiResponse.Search || [];
-                console.log(apiResponse.Search)
-                loading = false;
+        response = fetch(`https://www.omdbapi.com/?s=${value}&apikey=${API_KEY}`)
+            .then(res => {
+               if(!res.ok){
+                throw new Error('An error occurred while fetching the movies');
+               }else{
+                   return res;
+               }
             })
+            .then(res => res.json())
+            .then(apiResponse => apiResponse.Search || [])
     }else{
         response = [];
     }
@@ -27,17 +28,19 @@
 </style>
 
 <input placeholder="Movie Title" {value} on:input={handleInput}>
-{#if loading}
+{#await response}
     <p>Loading...</p>
-{:else}
+{:then response}
     {#if response.length > 0}
-    <p>{response.length} Movies found 🙌</p>
-    {#each response as {Title, Year, Poster}}
-        <Movie class="Movie" {Title} {Year} {Poster}/>
-    {/each}
+        <p>{response.length} Movies found 🙌</p>
+        {#each response as {Title, Year, Poster}}
+            <Movie {Title} {Year} {Poster}/>
+        {/each}
     {:else if value.length > 2}
         <p>No movies were found</p>
     {/if}
-{/if}
+{:catch error}
+    <p>❌{error}❌</p>
+{/await}
 
 
